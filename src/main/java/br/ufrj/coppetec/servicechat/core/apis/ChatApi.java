@@ -1,16 +1,19 @@
 package br.ufrj.coppetec.servicechat.core.apis;
 
 import br.ufrj.coppetec.servicechat.core.services.EmitterServices;
-import br.ufrj.coppetec.servicechat.domain.Message;
-import br.ufrj.coppetec.servicechat.domain.MessageConfiguration;
-import br.ufrj.coppetec.servicechat.domain.SseEmitterIdentifier;
+import br.ufrj.coppetec.servicechat.domain.*;
+import io.swagger.annotations.ApiOperation;
+import org.bouncycastle.util.Strings;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.Objects.isNull;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 
 @RestController
@@ -23,35 +26,96 @@ public class ChatApi {
         this.service = emitterServices;
     }
 
-    @GetMapping(path = "/sse", produces = TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe() {
+    @PostMapping(path = "/create/channel")
+    @ApiOperation(value = "Cria um novo canal", notes = "Cria um novo canal com base nos dados fornecidos no corpo da solicitação.")
+    public ResponseEntity<Channel> createChannel(@RequestBody Channel body) {
+        var response = service.createChannel(body);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/channel/{channelId}/close")
+    @ApiOperation(
+            value = "Fecha um canal",
+            notes = "Fecha o canal com o ID especificado.",
+            response = Void.class
+    )
+    public ResponseEntity<Void> closeChannel(@PathVariable String channelId) {
+        service.closeChannel(channelId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/channels")
+    @ApiOperation(
+            value = "Obtém a lista de canais",
+            notes = "Retorna uma lista de todos os canais disponíveis.",
+            response = Channel.class,
+            responseContainer = "List"
+    )
+    public ResponseEntity<List<Channel>> getChannels() {
+        var response = service.getChannels();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/channel/{chanelId}/connected")
+    @ApiOperation(
+            value = "Obtém informações do canal conectado",
+            notes = "Retorna informações sobre o canal conectado com o ID especificado.",
+            response = ChannelInfo.class
+    )
+    public ResponseEntity<ChannelInfo> getChannelConnected(@PathVariable String chanelId) {
+        var response = service.getChannelInfo(chanelId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/sse/{channelId}/user/{userId}", produces = TEXT_EVENT_STREAM_VALUE)
+    @ApiOperation(
+            value = "Assine eventos SSE do canal para o usuário",
+            notes = "Permite que um usuário assine eventos SSE para o canal especificado.",
+            response = SseEmitter.class
+    )
+    public SseEmitter subscribe(@PathVariable String channelId, @PathVariable String userId) {
+        if (isNull(channelId) || channelId.isEmpty() || channelId.equals("undefined") || userId.equals("undefined")) {
+            throw new IllegalArgumentException("Channel id is required");
+        }
+
         var emitter = new SseEmitter(Long.MAX_VALUE);
-        service.addEmitter(emitter);
+        service.connectChannel(emitter, channelId, userId);
         return emitter;
     }
 
     @GetMapping(path = "/users/connected")
-    public ResponseEntity<List<SseEmitterIdentifier>> getUsers() {
-        return ResponseEntity.ok().body(service.getUsers());
+    @ApiOperation(
+            value = "Obtém a lista de canais conectados",
+            notes = "Retorna uma lista de canais aos quais os usuários estão atualmente conectados.",
+            response = Channel.class,
+            responseContainer = "List"
+    )
+    public ResponseEntity<List<Channel>> channels() {
+        return ResponseEntity.ok().body(service.getChannels());
     }
 
-    @GetMapping(path = "/messages")
-    public ResponseEntity<List<MessageConfiguration>> getMessages() {
-        return ResponseEntity.ok(service.getMessages());
-    }
-
-    @DeleteMapping(path = "/messages/{messageId}")
-    public ResponseEntity<Void> removeMessage(@PathVariable String messageId) {
-        service.removeMessage(messageId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping(path = "/message")
-    public ResponseEntity<Void> sendMessage(@RequestBody Message message) {
-        service.receiveMessage(
-                new MessageConfiguration(message, LocalDateTime.now(), false)
+    @PostMapping(path = "/message/{channelId}/send")
+    @ApiOperation(
+            value = "Envia uma mensagem para um canal",
+            notes = "Envia uma mensagem para o canal especificado com base nos dados fornecidos no corpo da solicitação.",
+            response = Void.class
+    )
+    public ResponseEntity<Void> sendMessage(@RequestBody Message message, @PathVariable String channelId) {
+        service.sendMessage(
+                new MessageConfiguration(message, LocalDateTime.now().format(ISO_LOCAL_DATE_TIME), false),
+                channelId
         );
-
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/messages/{channelId}")
+    @ApiOperation(
+            value = "Obtém mensagens de um canal específico",
+            notes = "Retorna uma lista de mensagens do canal com o ID especificado.",
+            response = MessageConfiguration.class,
+            responseContainer = "List"
+    )
+    public ResponseEntity<List<MessageConfiguration>> getMessages(@PathVariable String channelId) {
+        return ResponseEntity.ok(service.getMessages(channelId));
     }
 }

@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 public class MessageConfiguration {
     private Message message;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private Boolean delivered;
 
-    public MessageConfiguration(Message message, LocalDateTime createdAt, Boolean delivered) {
+    public MessageConfiguration(Message message, String createdAt, Boolean delivered) {
         this.message = message;
         this.createdAt = createdAt;
         this.delivered = delivered;
@@ -21,11 +21,11 @@ public class MessageConfiguration {
         this.message = message;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 

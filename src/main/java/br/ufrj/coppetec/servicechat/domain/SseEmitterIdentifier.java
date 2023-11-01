@@ -2,13 +2,11 @@ package br.ufrj.coppetec.servicechat.domain;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.UUID;
-
 public class SseEmitterIdentifier {
     private SseEmitter sseEmitter;
-    private UUID uuid;
+    private String uuid;
 
-    public SseEmitterIdentifier(SseEmitter sseEmitter, UUID uuid) {
+    public SseEmitterIdentifier(SseEmitter sseEmitter, String uuid) {
         this.sseEmitter = sseEmitter;
         this.uuid = uuid;
     }
@@ -21,11 +19,11 @@ public class SseEmitterIdentifier {
         this.sseEmitter = sseEmitter;
     }
 
-    public UUID getUuid() {
+    public String getId() {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
+    public void setId(String uuid) {
         this.uuid = uuid;
     }
 }
