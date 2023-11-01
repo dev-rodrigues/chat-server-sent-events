@@ -4,6 +4,8 @@ import br.ufrj.coppetec.servicechat.domain.Channel;
 import br.ufrj.coppetec.servicechat.domain.ChannelInfo;
 import br.ufrj.coppetec.servicechat.domain.MessageConfiguration;
 import br.ufrj.coppetec.servicechat.domain.SseEmitterIdentifier;
+import br.ufrj.coppetec.servicechat.domain.exceptions.InfraStructureException;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -12,10 +14,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 @Service
 public class EmitterServices {
 
     private final List<Channel> channels = new CopyOnWriteArrayList<>();
+    private final Logger logger = getLogger(this.getClass());
 
     public Channel createChannel(Channel body) {
         var channel = new Channel(
@@ -49,7 +54,7 @@ public class EmitterServices {
 
         // Se estiver, remove o usuário da lista de emitters
         existingEmitter.ifPresent(sseEmitterIdentifier -> {
-            System.out.println("Removendo usuário " + userId + " do canal " + channelId);
+            logger.info("Removendo usuário " + userId + " do canal " + channelId);
             channel.getEmitters().remove(sseEmitterIdentifier);
         });
 
@@ -65,7 +70,7 @@ public class EmitterServices {
         return channels.stream()
                 .filter(c -> c.getChatCode().equals(channelId))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() -> new InfraStructureException("Canal não encontrado"));
     }
 
     public void sendMessage(MessageConfiguration messageConfiguration, String channelId) {
@@ -85,5 +90,19 @@ public class EmitterServices {
     public void closeChannel(String channelId) {
         var channel = getChannel(channelId);
         channels.remove(channel);
+    }
+
+    public void alreadyConnected(String userId) {
+        getChannels()
+                .stream()
+                .findFirst()
+                .flatMap(it -> it
+                        .getEmitters()
+                        .stream()
+                        .filter(emitter -> emitter.getId().equals(userId))
+                        .findFirst())
+                .ifPresent(sseEmitterIdentifier -> {
+                    throw new InfraStructureException("Usuário já conectado");
+                });
     }
 }

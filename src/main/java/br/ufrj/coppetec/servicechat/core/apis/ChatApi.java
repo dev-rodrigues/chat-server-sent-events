@@ -44,6 +44,12 @@ public class ChatApi {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/channel/{userId}/verify")
+    public ResponseEntity<Void> verifyUserConnected(@PathVariable String userId) {
+        service.alreadyConnected(userId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping(path = "/channels")
     @ApiOperation(
             value = "Obtém a lista de canais",
