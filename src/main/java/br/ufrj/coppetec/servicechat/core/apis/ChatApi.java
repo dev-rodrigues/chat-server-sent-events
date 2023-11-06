@@ -128,4 +128,10 @@ public class ChatApi {
         service.banUser(userId);
         return ResponseEntity.ok().build();
     }
+
+
+    @GetMapping(path = "/user/bans")
+    public ResponseEntity<List<String>> getUserBans() {
+        return ResponseEntity.ok(service.getBannedUsers());
+    }
 }

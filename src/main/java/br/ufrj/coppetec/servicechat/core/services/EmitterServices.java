@@ -157,8 +157,7 @@ public class EmitterServices {
         bannedUsers.add(userId);
     }
 
-//    public boolean banUser(String channelId, String userId) {
-//        var channel = getChannel(channelId);
-//        return channel.getUsersBan().contains(userId);
-//    }
+    public List<String> getBannedUsers() {
+        return bannedUsers;
+    }
 }
