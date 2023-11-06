@@ -109,7 +109,15 @@ public class EmitterServices {
     }
 
     public void alreadyConnected(String userId) {
-        getChannels().stream().findFirst().flatMap(it -> it.getEmitters().stream().filter(emitter -> emitter.getId().equals(userId)).findFirst()).ifPresent(sseEmitterIdentifier -> {
+        getChannels()
+                .stream()
+                .findFirst()
+                .flatMap(it ->
+                        it.getEmitters()
+                                .stream()
+                                .filter(emitter -> emitter.getId().equals(userId))
+                                .findFirst())
+                .ifPresent(sseEmitterIdentifier -> {
             throw new InfraStructureException("Usuário já conectado");
         });
     }
