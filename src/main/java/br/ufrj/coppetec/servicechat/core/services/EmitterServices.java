@@ -25,7 +25,7 @@ public class EmitterServices {
     public Channel createChannel(Channel body) {
         var channel = new Channel(
                 body.getChatName(),
-                UUID.randomUUID().toString()
+                body.getChatCode()
         );
 
         this.channels.add(channel);
