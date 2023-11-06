@@ -122,4 +122,10 @@ public class ChatApi {
     public ResponseEntity<List<MessageConfiguration>> getMessages(@PathVariable String channelId) {
         return ResponseEntity.ok(service.getMessages(channelId));
     }
+
+    @PostMapping(path = "/user/{userId}/ban")
+    public ResponseEntity<Void> banUser(@PathVariable String userId) {
+        service.banUser(userId);
+        return ResponseEntity.ok().build();
+    }
 }

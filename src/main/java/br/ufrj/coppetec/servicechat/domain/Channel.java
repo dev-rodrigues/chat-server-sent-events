@@ -9,12 +9,10 @@ public class Channel {
     private String chatCode;
     private List<SseEmitterIdentifier> emitters;
     private List<MessageConfiguration> messages;
-    private List<String> usersBan;
 
     public Channel() {
         this.emitters = new CopyOnWriteArrayList<>();
         this.messages = new CopyOnWriteArrayList<>();
-        this.usersBan = new CopyOnWriteArrayList<>();
     }
 
     public Channel(String chatName, String chatCode) {
@@ -22,7 +20,6 @@ public class Channel {
         this.chatCode = chatCode;
         this.emitters = new CopyOnWriteArrayList<>();
         this.messages = new CopyOnWriteArrayList<>();
-        this.usersBan = new CopyOnWriteArrayList<>();
     }
 
     public String getChatName() {
@@ -55,13 +52,5 @@ public class Channel {
 
     public void setMessages(List<MessageConfiguration> messages) {
         this.messages = messages;
-    }
-
-    public List<String> getUsersBan() {
-        return usersBan;
-    }
-
-    public void setUsersBan(List<String> usersBan) {
-        this.usersBan = usersBan;
     }
 }

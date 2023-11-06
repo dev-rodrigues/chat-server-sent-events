@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class EmitterServices {
 
     private final List<Channel> channels = new CopyOnWriteArrayList<>();
+    private final List<String> bannedUsers = new CopyOnWriteArrayList<>();
     private final Logger logger = getLogger(this.getClass());
 
     public Channel createChannel(Channel body) {
@@ -108,6 +109,10 @@ public class EmitterServices {
     }
 
     public void sendMessage(MessageConfiguration messageConfiguration, String channelId) {
+        if (bannedUsers.contains(messageConfiguration.getMessage().getUserCode())) {
+            throw new InfraStructureException("Usuário banido");
+        }
+
         var channel = getChannel(channelId);
         channel.getMessages().add(messageConfiguration);
     }
@@ -138,6 +143,10 @@ public class EmitterServices {
                 .ifPresent(sseEmitterIdentifier -> {
             throw new InfraStructureException("Usuário já conectado");
         });
+    }
+
+    public void banUser(String userId) {
+        bannedUsers.add(userId);
     }
 
 //    public boolean banUser(String channelId, String userId) {
