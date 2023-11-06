@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,10 +24,7 @@ public class EmitterServices {
     private final Logger logger = getLogger(this.getClass());
 
     public Channel createChannel(Channel body) {
-        var channel = new Channel(
-                body.getChatName(),
-                body.getChatCode()
-        );
+        var channel = new Channel(body.getChatName(), body.getChatCode());
 
         this.channels.add(channel);
         return channel;
@@ -35,11 +33,7 @@ public class EmitterServices {
     public ChannelInfo getChannelInfo(String channelId) {
         var channel = getChannel(channelId);
 
-        return new ChannelInfo(
-                channel.getChatName(),
-                channel.getChatCode(),
-                channel.getEmitters().size()
-        );
+        return new ChannelInfo(channel.getChatName(), channel.getChatCode(), channel.getEmitters().size());
     }
 
     public void connectChannel(SseEmitter emitter, String channelId, String userId) {
@@ -62,12 +56,34 @@ public class EmitterServices {
         // Conecta o usuário ao canal
         channel.getEmitters().add(new SseEmitterIdentifier(emitter, userId));
 
+        if (!channel.getMessages().isEmpty()) {
+            var messages = channel.getMessages();
+
+            for (MessageConfiguration message : messages) {
+                SseEmitterIdentifier emitterIdentifier = channel
+                        .getEmitters()
+                        .stream()
+                        .filter(it -> it.getId().equals(userId))
+                        .findFirst()
+                        .orElseThrow(() -> new InfraStructureException("Usuário não encontrado"));
+
+                try {
+                    emitterIdentifier.getSseEmitter().send(message);
+                } catch (IOException ex) {
+                    logger.error("Erro ao enviar mensagem para o usuário " + userId + " do canal " + channelId);
+                    emitterIdentifier.getSseEmitter().complete();
+                    channel.getEmitters().remove(emitter);
+                }
+            }
+        }
+
         emitter.onCompletion(() -> channel.getEmitters().remove(emitter));
         emitter.onTimeout(() -> channel.getEmitters().remove(emitter));
     }
 
     public Channel getChannel(String channelId) {
-        return channels.stream()
+        return channels
+                .stream()
                 .filter(c -> c.getChatCode().equals(channelId))
                 .findFirst()
                 .orElseThrow(() -> new InfraStructureException("Canal não encontrado"));
@@ -93,16 +109,8 @@ public class EmitterServices {
     }
 
     public void alreadyConnected(String userId) {
-        getChannels()
-                .stream()
-                .findFirst()
-                .flatMap(it -> it
-                        .getEmitters()
-                        .stream()
-                        .filter(emitter -> emitter.getId().equals(userId))
-                        .findFirst())
-                .ifPresent(sseEmitterIdentifier -> {
-                    throw new InfraStructureException("Usuário já conectado");
-                });
+        getChannels().stream().findFirst().flatMap(it -> it.getEmitters().stream().filter(emitter -> emitter.getId().equals(userId)).findFirst()).ifPresent(sseEmitterIdentifier -> {
+            throw new InfraStructureException("Usuário já conectado");
+        });
     }
 }
