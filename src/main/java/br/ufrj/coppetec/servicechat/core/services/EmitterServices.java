@@ -24,10 +24,20 @@ public class EmitterServices {
     private final Logger logger = getLogger(this.getClass());
 
     public Channel createChannel(Channel body) {
-        var channel = new Channel(body.getChatName(), body.getChatCode());
 
+        if (alreadyAChatWithCode(body.getChatCode())) {
+            throw new InfraStructureException("Já existe um canal com esse código");
+        }
+
+        var channel = new Channel(body.getChatName(), body.getChatCode());
         this.channels.add(channel);
         return channel;
+    }
+
+    private Boolean alreadyAChatWithCode(String chatCode) {
+        return channels
+                .stream()
+                .anyMatch(it -> it.getChatCode().equals(chatCode));
     }
 
     public ChannelInfo getChannelInfo(String channelId) {

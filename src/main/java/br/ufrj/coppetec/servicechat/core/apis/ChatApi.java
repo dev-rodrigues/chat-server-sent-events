@@ -3,14 +3,12 @@ package br.ufrj.coppetec.servicechat.core.apis;
 import br.ufrj.coppetec.servicechat.core.services.EmitterServices;
 import br.ufrj.coppetec.servicechat.domain.*;
 import io.swagger.annotations.ApiOperation;
-import org.bouncycastle.util.Strings;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Objects.isNull;
@@ -88,6 +86,15 @@ public class ChatApi {
         service.connectChannel(emitter, channelId, userId);
         return emitter;
     }
+
+//    @GetMapping(path = "/sse/{channelId}/user/{userId}/liveness")
+//    public ResponseEntity<Void> liveliness(@PathVariable String channelId, @PathVariable String userId) {
+//        if (isNull(channelId) || channelId.isEmpty() || channelId.equals("undefined") || userId.equals("undefined")) {
+//            throw new IllegalArgumentException("Channel id is required");
+//        }
+//
+//        return null;
+//    }
 
     @PostMapping(path = "/message/{channelId}/send")
     @ApiOperation(
