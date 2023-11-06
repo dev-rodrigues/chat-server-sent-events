@@ -89,17 +89,6 @@ public class ChatApi {
         return emitter;
     }
 
-    @GetMapping(path = "/users/connected")
-    @ApiOperation(
-            value = "Obtém a lista de canais conectados",
-            notes = "Retorna uma lista de canais aos quais os usuários estão atualmente conectados.",
-            response = Channel.class,
-            responseContainer = "List"
-    )
-    public ResponseEntity<List<Channel>> channels() {
-        return ResponseEntity.ok().body(service.getChannels());
-    }
-
     @PostMapping(path = "/message/{channelId}/send")
     @ApiOperation(
             value = "Envia uma mensagem para um canal",
