@@ -114,7 +114,15 @@ public class EmitterServices {
         }
 
         var channel = getChannel(channelId);
-        channel.getMessages().add(messageConfiguration);
+
+        channel
+                .getEmitters()
+                .stream()
+                .filter(it -> it.getId().equals(messageConfiguration.getMessage().getUserCode()))
+                .findFirst()
+                .ifPresent(sseEmitterIdentifier -> {
+                    channel.getMessages().add(messageConfiguration);
+                });
     }
 
     public List<MessageConfiguration> getMessages(String channelId) {
@@ -141,8 +149,8 @@ public class EmitterServices {
                                 .filter(emitter -> emitter.getId().equals(userId))
                                 .findFirst())
                 .ifPresent(sseEmitterIdentifier -> {
-            throw new InfraStructureException("Usuário já conectado");
-        });
+                    throw new InfraStructureException("Usuário já conectado");
+                });
     }
 
     public void banUser(String userId) {
