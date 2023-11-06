@@ -56,4 +56,12 @@ public class Channel {
     public void setMessages(List<MessageConfiguration> messages) {
         this.messages = messages;
     }
+
+    public List<String> getUsersBan() {
+        return usersBan;
+    }
+
+    public void setUsersBan(List<String> usersBan) {
+        this.usersBan = usersBan;
+    }
 }

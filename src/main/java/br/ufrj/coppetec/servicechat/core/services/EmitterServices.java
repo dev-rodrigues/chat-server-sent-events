@@ -12,7 +12,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -91,6 +90,15 @@ public class EmitterServices {
         emitter.onTimeout(() -> channel.getEmitters().remove(emitter));
     }
 
+    public void unsubscribe(String channelId, String userId) {
+        var channel = getChannel(channelId);
+
+        channel.getEmitters().stream().filter(it -> it.getId().equals(userId)).findFirst().ifPresent(sseEmitterIdentifier -> {
+            sseEmitterIdentifier.getSseEmitter().complete();
+            channel.getEmitters().remove(sseEmitterIdentifier);
+        });
+    }
+
     public Channel getChannel(String channelId) {
         return channels
                 .stream()
@@ -131,4 +139,9 @@ public class EmitterServices {
             throw new InfraStructureException("Usuário já conectado");
         });
     }
+
+//    public boolean banUser(String channelId, String userId) {
+//        var channel = getChannel(channelId);
+//        return channel.getUsersBan().contains(userId);
+//    }
 }

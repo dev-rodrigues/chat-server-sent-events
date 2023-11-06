@@ -87,14 +87,16 @@ public class ChatApi {
         return emitter;
     }
 
-//    @GetMapping(path = "/sse/{channelId}/user/{userId}/liveness")
-//    public ResponseEntity<Void> liveliness(@PathVariable String channelId, @PathVariable String userId) {
-//        if (isNull(channelId) || channelId.isEmpty() || channelId.equals("undefined") || userId.equals("undefined")) {
-//            throw new IllegalArgumentException("Channel id is required");
-//        }
-//
-//        return null;
-//    }
+    @PutMapping(path = "/sse/{channelId}/user/{userId}/unsubscribe")
+    public ResponseEntity<Void> unsubscribe(@PathVariable String channelId, @PathVariable String userId) {
+        if (isNull(channelId) || channelId.isEmpty() || channelId.equals("undefined") || userId.equals("undefined")) {
+            throw new IllegalArgumentException("Channel id is required");
+        }
+
+        service.unsubscribe(channelId, userId);
+
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping(path = "/message/{channelId}/send")
     @ApiOperation(
