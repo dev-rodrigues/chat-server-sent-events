@@ -160,4 +160,8 @@ public class EmitterServices {
     public List<String> getBannedUsers() {
         return bannedUsers;
     }
+
+    public void removeBan(String userId) {
+        bannedUsers.remove(userId);
+    }
 }

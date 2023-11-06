@@ -134,4 +134,10 @@ public class ChatApi {
     public ResponseEntity<List<String>> getUserBans() {
         return ResponseEntity.ok(service.getBannedUsers());
     }
+
+    @PutMapping(path = "/user/{userId}/removeban")
+    public ResponseEntity<Void> removeBan(@PathVariable String userId) {
+        service.removeBan(userId);
+        return ResponseEntity.ok().build();
+    }
 }
