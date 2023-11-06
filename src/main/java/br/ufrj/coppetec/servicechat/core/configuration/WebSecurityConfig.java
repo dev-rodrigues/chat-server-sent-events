@@ -13,6 +13,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedHeaders("*")
                 .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .exposedHeaders("Authorization",
                         "token",
                         "geracao",
@@ -22,7 +23,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         "Access-Control-Max-Age",
                         "Access-Control-Request-Headers",
                         "Access-Control-Request-Method")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(false)
                 .maxAge(3600);
     }
