@@ -1,7 +1,5 @@
 package br.ufrj.coppetec.servicechat.domain;
 
-import java.time.LocalDateTime;
-
 public class MessageConfiguration {
     private Message message;
     private String createdAt;
