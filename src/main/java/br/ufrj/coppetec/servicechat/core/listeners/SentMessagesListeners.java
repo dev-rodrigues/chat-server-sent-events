@@ -2,12 +2,14 @@ package br.ufrj.coppetec.servicechat.core.listeners;
 
 import br.ufrj.coppetec.servicechat.core.services.EmitterServices;
 import br.ufrj.coppetec.servicechat.domain.Channel;
+import br.ufrj.coppetec.servicechat.domain.KeepAlive;
 import br.ufrj.coppetec.servicechat.domain.MessageConfiguration;
 import br.ufrj.coppetec.servicechat.domain.SseEmitterIdentifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -32,7 +34,8 @@ public class SentMessagesListeners {
 
             for (Channel channel : channels) {
                 executorService.submit(() -> {
-                    List<MessageConfiguration> unreadMessagesCopy = channel.getMessages()
+                    List<MessageConfiguration> unreadMessagesCopy = channel
+                            .getMessages()
                             .stream()
                             .filter(messageConfig -> !messageConfig.getDelivered())
                             .sorted(Comparator.comparing(MessageConfiguration::getCreatedAt))
@@ -41,10 +44,18 @@ public class SentMessagesListeners {
                     for (SseEmitterIdentifier emitter : channel.getEmitters()) {
                         try {
                             for (MessageConfiguration message : unreadMessagesCopy) {
-                                emitter.getSseEmitter().send(message);
-                                message.setDelivered(true);
+                                emitter.getSseEmitter().send(new KeepAlive());
+                                Thread.sleep(2000); // Espera por 2 segundos
+
+                                if (LocalDateTime.now().isBefore(emitter.getLastKeepAlive().plusSeconds(10))) {
+                                    emitter.getSseEmitter().send(message);
+                                    message.setDelivered(true);
+                                } else {
+                                    // remove esse emitter da lista de emitters
+                                    emitterServices.unsubscribe(channel.getChatCode(), emitter.getId());
+                                }
                             }
-                        } catch (IOException e) {
+                        } catch (IOException | InterruptedException e) {
                             emitter.getSseEmitter().complete();
                             channel.getEmitters().remove(emitter);
                         }
@@ -52,7 +63,6 @@ public class SentMessagesListeners {
                 });
             }
 
-            // Aguarde o término de todas as threads
             executorService.shutdown();
         }
     }

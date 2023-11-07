@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -46,6 +47,19 @@ public class EmitterServices {
         return new ChannelInfo(channel.getChatName(), channel.getChatCode(), channel.getEmitters().size());
     }
 
+    public void keepAlive(String channelId, String userId) {
+        var channel = getChannel(channelId);
+
+        channel
+                .getEmitters()
+                .stream()
+                .filter(it -> it.getId().equals(userId))
+                .findFirst()
+                .ifPresent(sseEmitterIdentifier -> {
+                    sseEmitterIdentifier.setLastKeepAlive(LocalDateTime.now());
+                });
+    }
+
     public void connectChannel(SseEmitter emitter, String channelId, String userId) {
         var channel = getChannel(channelId);
 
@@ -64,7 +78,7 @@ public class EmitterServices {
 
 
         // Conecta o usuário ao canal
-        channel.getEmitters().add(new SseEmitterIdentifier(emitter, userId));
+        channel.getEmitters().add(new SseEmitterIdentifier(LocalDateTime.now(), emitter, userId));
 
         if (!channel.getMessages().isEmpty()) {
             var messages = channel.getMessages();
@@ -94,10 +108,15 @@ public class EmitterServices {
     public void unsubscribe(String channelId, String userId) {
         var channel = getChannel(channelId);
 
-        channel.getEmitters().stream().filter(it -> it.getId().equals(userId)).findFirst().ifPresent(sseEmitterIdentifier -> {
-            sseEmitterIdentifier.getSseEmitter().complete();
-            channel.getEmitters().remove(sseEmitterIdentifier);
-        });
+        channel
+                .getEmitters()
+                .stream().
+                filter(it -> it.getId().equals(userId))
+                .findFirst()
+                .ifPresent(sseEmitterIdentifier -> {
+                    sseEmitterIdentifier.getSseEmitter().complete();
+                    channel.getEmitters().remove(sseEmitterIdentifier);
+                });
     }
 
     public Channel getChannel(String channelId) {
