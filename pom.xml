@@ -11,8 +11,8 @@
     <groupId>br.ufrj.coppetec</groupId>
     <artifactId>service--chat</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>service--chat</name>
-    <description>service--chat</description>
+    <name>api-chat</name>
+    <description>api-chat</description>
     <properties>
         <java.version>11</java.version>
         <maven.compiler.source>11</maven.compiler.source>
